@@ -1,9 +1,8 @@
 
 
 class Substation:
-    # default constructor
     # substation name, capacity, current load, connected regions, and status set by user
-    # if user does not set values, default name = "Sub0", capacity = 150, current load = 0, status = True
+    # default values provided if user does not set data
     def __init__(self, name="Sub0", capacity=150, current_load=0, status=True):
         self.name = name
         self.capacity = capacity
@@ -40,6 +39,30 @@ class Region:
             sub.add_load(load)
 
 
+class GridController:
+    # initialized with a list of all substations and list of all regions
+    def __init__(self, substations=None, regions=None):
+        self.substations = substations if substations is not None else []
+        self.regions = regions if regions is not None else []
+
+    # sets current load for all substations to 0
+    def reset_loads(self):
+        for sub in self.substations:
+            sub.current_load = 0
+
+    # distributes load for every region
+    def distribute_loads(self):
+        for reg in self.regions:
+            reg.distribute_load()
+
+    # checks substations for overload and prints warning if overloaded
+    def check_overloads(self):
+        for sub in self.substations:
+            # if overloaded = true
+            if sub.check_overload():
+                print("WARNING: ", sub.name, " is overloaded\n")
+
+
 # Substations/Regions Test
 # initializing substations
 S1 = Substation()
@@ -57,6 +80,18 @@ data_center.distribute_load()
 water.distribute_load()
 neighborhood.distribute_load()
 # printing current loads of substations
+print(S1.current_load)
+print(S2.current_load)
+print(S3.current_load)
+
+# creating grid controller
+grid = GridController([S1, S2, S3], [city, data_center, water, neighborhood])
+
+# testing grid controller functions
+grid.reset_loads()
+grid.distribute_loads()
+grid.check_overloads()
+
 print(S1.current_load)
 print(S2.current_load)
 print(S3.current_load)
