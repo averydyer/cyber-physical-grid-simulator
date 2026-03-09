@@ -19,6 +19,10 @@ class Substation:
     def check_overload(self):
         return self.current_load > self.capacity
 
+    # prints substation's load data
+    def print_sub(self):
+        print(f"\n{self.name}: {self.current_load}/{self.capacity}")
+
 
 class Region:
     # default Region object: name = "Reg0", demand = 50, no connected substations
@@ -60,38 +64,18 @@ class GridController:
         for sub in self.substations:
             # if overloaded = true
             if sub.check_overload():
+                sub.print_sub()
                 print("WARNING: ", sub.name, " is overloaded\n")
 
 
-# Substations/Regions Test
-# initializing substations
-S1 = Substation()
-S2 = Substation("Sub2", 200, 50, True)
-S3 = Substation("Sub3", 300, 100, True)
-# initializing regions
-city = Region("City", 80, [S1, S2])
-data_center = Region("Data Center", 120, [S1, S2])
-water = Region("Water Treatment", 40, [S1, S3])
-neighborhood = Region("Neighborhood", 25, [S3])
+# creating intentional overload to check behavior
+S1 = Substation("S1", 50, 0, True)
+city = Region("City", 100, [S1])
 
-# distributing loads
-city.distribute_load()
-data_center.distribute_load()
-water.distribute_load()
-neighborhood.distribute_load()
-# printing current loads of substations
-print(S1.current_load)
-print(S2.current_load)
-print(S3.current_load)
-
-# creating grid controller
-grid = GridController([S1, S2, S3], [city, data_center, water, neighborhood])
-
-# testing grid controller functions
+grid = GridController([S1], [city])
+# S1 current load is set to 0
 grid.reset_loads()
+# city's load is distributed (only connected to S1 so entire load goes to S1)
 grid.distribute_loads()
+# S1 is checked for overload
 grid.check_overloads()
-
-print(S1.current_load)
-print(S2.current_load)
-print(S3.current_load)
