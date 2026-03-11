@@ -20,8 +20,27 @@ class Substation:
         return self.current_load > self.capacity
 
     # prints substation's load data
-    def print_sub(self):
-        print(f"\n{self.name}: {self.current_load}/{self.capacity}")
+    def display_sub(self):
+        # if status is false, substation is offline
+        if not self.status:
+            print(
+                f"{self.name:6} {"[OFFLINE]":22} {f"0/{self.capacity}":7} MW")
+            return
+        # check for overloaded substation
+        if self.check_overload():
+            print(
+                f"{self.name:6} {"[OVERLOADED]":22} {f"{self.current_load:.0f}/{self.capacity}":7} MW")
+            return
+        bar_len = 20
+        # calculates how much of the capacity is being utilized (>1 = overloaded)
+        load_ratio = self.current_load / self.capacity
+        # how many sections of the bar should be filled based on load ratio
+        filled = int(load_ratio * bar_len)
+        # creating bar string
+        bar = "█" * filled + "░" * (bar_len - filled)
+        # :6 = print name using 6 characters of space
+        print(
+            f"{self.name:6} [{bar}] {f"{self.current_load:.0f}/{self.capacity}":7} MW")
 
 
 class Region:
@@ -34,13 +53,22 @@ class Region:
     def distribute_load(self):
         # guard against having no connected substations
         if not self.connected_substations:
-            print("No substations connected to this region\n")
+            print(f"{self.name} has no connected substations\n")
             return
-        # equal distribution of load between connected substations
-        load = self.demand / len(self.connected_substations)
-        # add load amount to each substation
+        active_subs = 0
         for sub in self.connected_substations:
-            sub.add_load(load)
+            # if the substation is online
+            if sub.status:
+                active_subs += 1
+        if active_subs == 0:
+            print(f"All substations connected to {self.name} are offline")
+        else:
+            # equal distribution of load between connected, active substations
+            load = self.demand / active_subs
+            # add load amount to each substation
+            for sub in self.connected_substations:
+                if sub.status:
+                    sub.add_load(load)
 
 
 class GridController:
@@ -59,23 +87,33 @@ class GridController:
         for reg in self.regions:
             reg.distribute_load()
 
-    # checks substations for overload and prints warning if overloaded
-    def check_overloads(self):
+    # runs the entire system (reset and distribute loads, check overload, display grid)
+    def simulation_step(self):
+        self.reset_loads()
+        self.distribute_loads()
+        self.display_grid()
+
+    # prints out all substations in the grid and their status
+    def display_grid(self):
+        print("\nGrid Status")
+        print("-----------------------------------------")
         for sub in self.substations:
-            # if overloaded = true
-            if sub.check_overload():
-                sub.print_sub()
-                print("WARNING: ", sub.name, " is overloaded\n")
+            sub.display_sub()
+        print("-----------------------------------------\n")
 
 
-# creating intentional overload to check behavior
-S1 = Substation("S1", 50, 0, True)
-city = Region("City", 100, [S1])
+S1 = Substation("S1", 100, 50, True)
+S2 = Substation("S2", 200, 0, True)
+S3 = Substation("S3", 150, 150, True)
 
-grid = GridController([S1], [city])
-# S1 current load is set to 0
-grid.reset_loads()
-# city's load is distributed (only connected to S1 so entire load goes to S1)
-grid.distribute_loads()
-# S1 is checked for overload
-grid.check_overloads()
+city = Region("City", 100, [S1, S2])
+neighborhood = Region("Neighborhood", 50, [S3])
+data_center = Region("Data Center", 100, [S1, S2])
+water = Region("Water Treatment Plant", 80, [S3])
+
+grid = GridController([S1, S2, S3], [city, neighborhood, data_center, water])
+grid.simulation_step()
+
+# when S2 goes offline, S1 is overloaded
+S2.status = False
+grid.simulation_step()
