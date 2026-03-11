@@ -1,4 +1,4 @@
-******************************************************
+**************************************************************************************************
 This output shows how a substation overload can lead
 to cascading failures. The demand of the region "City"
 was first increased to 300 MW. City is connected to 
@@ -55,4 +55,42 @@ S1     [OFFLINE]              0/100   MW
 S2     [OFFLINE]              0/200   MW
 S3     [█████████████████░░░] 130/150 MW
 -----------------------------------------
-******************************************************
+**************************************************************************************************
+**************************************************************************************************
+Here, at first every region is powered and every substation
+is active and not overloaded. However, a cyber attack on S1 causes
+it to go offline. This means the loads of City and Data Center are
+redistributed to S2, which overloads it and causes it to shut down.
+
+This attack on S1 causes S2 to also fail, and there is a blackout
+in both City and Data Center
+
+Output:
+
+Grid Status
+-----------------------------------------
+S1     [████████████████████] 100/100 MW
+S2     [█████████████░░░░░░░] 100/150 MW
+S3     [█████████████████░░░] 130/150 MW
+-----------------------------------------
+
+WARNING: cyber attack on S1
+
+Grid Status
+-----------------------------------------
+S1     [OFFLINE]              0/100   MW
+S2     [OVERLOADED]           200/150 MW
+S3     [█████████████████░░░] 130/150 MW
+-----------------------------------------
+
+WARNING: S2 is overloaded and is being shut down
+WARNING: all substations connected to City are offline
+WARNING: all substations connected to Data Center are offline
+
+Grid Status
+-----------------------------------------
+S1     [OFFLINE]              0/100   MW
+S2     [OFFLINE]              0/150   MW
+S3     [█████████████████░░░] 130/150 MW
+-----------------------------------------
+**************************************************************************************************

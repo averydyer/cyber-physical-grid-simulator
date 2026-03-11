@@ -116,20 +116,24 @@ class GridController:
                     f"WARNING: {sub.name} is overloaded and is being shut down")
         self.simulation_step()
 
+    # "attacks" the named substation by taking it offline
+    def attack_substation(self, name):
+        for sub in self.substations:
+            if sub.name == name:
+                sub.status = False
+                print(f"WARNING: cyber attack on {sub.name}")
+
 
 S1 = Substation("S1", 100, 50, True)
-S2 = Substation("S2", 200, 0, True)
+S2 = Substation("S2", 150, 0, True)
 S3 = Substation("S3", 150, 150, True)
-city = Region("City", 300, [S1, S2])
+city = Region("City", 100, [S1, S2])
 neighborhood = Region("Neighborhood", 50, [S3])
 data_center = Region("Data Center", 100, [S1, S2])
 water = Region("Water Treatment Plant", 80, [S3])
 
-# simulating cascading failure: S1 and S2 both receive 150 MW from City,
-# which causes an overload in S1 because its capacity is only 100. S1 thus
-# shuts down and load is redistributed to S2. Now S2 is receiving the entire
-# load from City and Data Center, which causes it to be overloaded and also
-# shut down. Now the only active substation is S3 and City and Data Center
-# are both experiencing a blackout
+
 grid = GridController([S1, S2, S3], [city, neighborhood, data_center, water])
+grid.simulation_step()
+grid.attack_substation("S1")
 grid.simulation_step()
