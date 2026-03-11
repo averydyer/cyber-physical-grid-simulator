@@ -61,7 +61,8 @@ class Region:
             if sub.status:
                 active_subs += 1
         if active_subs == 0:
-            print(f"All substations connected to {self.name} are offline")
+            print(
+                f"WARNING: all substations connected to {self.name} are offline")
         else:
             # equal distribution of load between connected, active substations
             load = self.demand / active_subs
@@ -92,6 +93,10 @@ class GridController:
         self.reset_loads()
         self.distribute_loads()
         self.display_grid()
+        # if a substation is overloaded, shut it down
+        for sub in self.substations:
+            if sub.check_overload():
+                self.overload_shutdown()
 
     # prints out all substations in the grid and their status
     def display_grid(self):
@@ -101,19 +106,30 @@ class GridController:
             sub.display_sub()
         print("-----------------------------------------\n")
 
+    # shuts down overloaded substations, runs another simulation step
+    def overload_shutdown(self):
+        for sub in self.substations:
+            # if the substation is overloaded
+            if sub.check_overload():
+                sub.status = False
+                print(
+                    f"WARNING: {sub.name} is overloaded and is being shut down")
+        self.simulation_step()
+
 
 S1 = Substation("S1", 100, 50, True)
 S2 = Substation("S2", 200, 0, True)
 S3 = Substation("S3", 150, 150, True)
-
-city = Region("City", 100, [S1, S2])
+city = Region("City", 300, [S1, S2])
 neighborhood = Region("Neighborhood", 50, [S3])
 data_center = Region("Data Center", 100, [S1, S2])
 water = Region("Water Treatment Plant", 80, [S3])
 
+# simulating cascading failure: S1 and S2 both receive 150 MW from City,
+# which causes an overload in S1 because its capacity is only 100. S1 thus
+# shuts down and load is redistributed to S2. Now S2 is receiving the entire
+# load from City and Data Center, which causes it to be overloaded and also
+# shut down. Now the only active substation is S3 and City and Data Center
+# are both experiencing a blackout
 grid = GridController([S1, S2, S3], [city, neighborhood, data_center, water])
-grid.simulation_step()
-
-# when S2 goes offline, S1 is overloaded
-S2.status = False
 grid.simulation_step()

@@ -7,7 +7,7 @@ Current features:
 - Substation modeling (3 substations)
 - Region demand modeling (4 regions)
 - Load tracking
-- Overload detection
+- Overload detection/shutdown
 - Grid controller logic
 - Substation load visualization
 
