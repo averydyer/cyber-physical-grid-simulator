@@ -1,7 +1,7 @@
 
 
 class Substation:
-    # substation name, capacity, current load, connected regions, and status set by user
+    # substation name, capacity, current load, and status set by user
     # default values provided if user does not set data
     def __init__(self, name="Sub0", capacity=150, current_load=0, status=True):
         self.name = name
@@ -24,12 +24,12 @@ class Substation:
         # if status is false, substation is offline
         if not self.status:
             print(
-                f"{self.name:6} {"[OFFLINE]":22} {f"0/{self.capacity}":7} MW")
+                f"{self.name:6} {'[OFFLINE]':22} {f"0/{self.capacity}":7} MW")
             return
         # check for overloaded substation
         if self.check_overload():
             print(
-                f"{self.name:6} {"[OVERLOADED]":22} {f"{self.current_load:.0f}/{self.capacity}":7} MW")
+                f"{self.name:6} {'[OVERLOADED]':22} {f"{self.current_load:.0f}/{self.capacity}":7} MW")
             return
         bar_len = 20
         # calculates how much of the capacity is being utilized (>1 = overloaded)
@@ -45,10 +45,11 @@ class Substation:
 
 class Region:
     # default Region object: name = "Reg0", demand = 50, no connected substations
-    def __init__(self, name="Reg0", demand=50, connected_substations=None):
+    def __init__(self, name="Reg0", demand=50, connected_substations=None, priority=5):
         self.name = name
         self.demand = demand
         self.connected_substations = connected_substations if connected_substations is not None else []
+        self.priority = priority
 
     def distribute_load(self):
         # guard against having no connected substations
@@ -70,7 +71,6 @@ class Region:
             for sub in self.connected_substations:
                 if sub.status:
                     sub.add_load(load)
-
 
 class GridController:
     # initialized with a list of all substations and list of all regions
@@ -124,16 +124,18 @@ class GridController:
                 print(f"WARNING: cyber attack on {sub.name}")
 
 
-S1 = Substation("S1", 100, 50, True)
+S1 = Substation("S1", 200, 50, True)
 S2 = Substation("S2", 150, 0, True)
-S3 = Substation("S3", 150, 150, True)
-city = Region("City", 100, [S1, S2])
-neighborhood = Region("Neighborhood", 50, [S3])
-data_center = Region("Data Center", 100, [S1, S2])
-water = Region("Water Treatment Plant", 80, [S3])
+S3 = Substation("S3", 100, 150, True)
+# priority is the last argument given and is a number from 1-5
+# with 1 being highest priority and 5 being lowest priority
+city = Region("City", 100, [S1, S2], 2)
+neighborhood = Region("Neighborhood", 50, [S1, S3], 5)
+data_center = Region("Data Center", 150, [S1, S2], 4)
+water = Region("Water Treatment Plant", 80, [S2, S3], 1)
 
 
 grid = GridController([S1, S2, S3], [city, neighborhood, data_center, water])
 grid.simulation_step()
-grid.attack_substation("S1")
-grid.simulation_step()
+
+# implement priority function
