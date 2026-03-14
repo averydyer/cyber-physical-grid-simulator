@@ -72,6 +72,7 @@ class Region:
                 if sub.status:
                     sub.add_load(load)
 
+
 class GridController:
     # initialized with a list of all substations and list of all regions
     def __init__(self, substations=None, regions=None):
@@ -87,6 +88,13 @@ class GridController:
     def distribute_loads(self):
         for reg in self.regions:
             reg.distribute_load()
+        print("\n BEFORE REDISTRIBUTION:")
+        self.display_grid()
+        # try to redistribute if a substation is overloaded
+        for sub in self.substations:
+            if sub.check_overload():
+                self.redistribute(sub)
+        print("\n AFTER REDISTRIBUTION:")
 
     # runs the entire system (reset and distribute loads, check overload, display grid)
     def simulation_step(self):
@@ -122,6 +130,34 @@ class GridController:
             if sub.name == name:
                 sub.status = False
                 print(f"WARNING: cyber attack on {sub.name}")
+
+    # attempts to redistribute load to prevent overload
+    def redistribute(self, oSub):
+        # overload amount
+        overload = oSub.current_load - oSub.capacity
+        connected_regions = []
+        available_subs = set()
+        # find all regions connected to the overloaded substation
+        for reg in self.regions:
+            if oSub in reg.connected_substations:
+                connected_regions.append(reg)
+        # find all available substations to transfer load to
+        for reg in connected_regions:
+            for sub in reg.connected_substations:
+                # an available substation is active, is not the overloaded substation, and has load space
+                if sub is not oSub and sub.status and not sub.check_overload() and (sub.capacity - sub.current_load > 0):
+                    available_subs.add(sub)
+        for sub in available_subs:
+            # load space is how much more load the substation could take
+            load_space = sub.capacity - sub.current_load
+            # finding the limiting factor (overload amount or load space)
+            transfer = min(overload, load_space)
+            oSub.current_load -= transfer
+            overload -= transfer
+            sub.current_load += transfer
+            # if overload is 0, the substation is no longer overloaded
+            if overload == 0:
+                break
 
 
 S1 = Substation("S1", 200, 50, True)
