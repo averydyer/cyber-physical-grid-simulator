@@ -90,12 +90,13 @@ This file contains:
 
 Planned improvements to the simulator include:
 
-- Cascading failure detection and propagation across substations
-- Critical infrastructure prioritization (e.g., water treatment plants vs residential regions)
-- Logging system for grid events and attack scenarios
-- Simulation timelines for multi-step grid evolution
-- Resilience analysis to measure grid robustness under different attack conditions
-- Configurable grid topology through external configuration files
+- JSON-driven attack scenario framework to model targeted cyber threats (e.g., substation shutdowns, control signal manipulation) with configurable and repeatable simulation inputs  
+- Cascading failure detection and propagation logic to model multi-stage outages across interconnected substations  
+- Critical infrastructure prioritization (e.g., water treatment plants vs residential regions) with load shedding and resource allocation strategies  
+- Event logging system for tracking grid state changes, attack events, and failure timelines for post-simulation analysis  
+- Time-stepped simulation engine to model multi-stage grid evolution and dynamic system behavior over successive intervals  
+- Resilience analysis metrics to evaluate grid robustness under varying attack conditions and failure scenarios  
+- Configurable grid topology via external configuration files (e.g., JSON) to enable flexible modeling of different infrastructure layouts  
 
 ---
 

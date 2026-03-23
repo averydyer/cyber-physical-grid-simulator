@@ -175,3 +175,4 @@ grid = GridController([S1, S2, S3], [city, neighborhood, data_center, water])
 grid.simulation_step()
 
 # implement priority function
+# fix sim output
